@@ -352,6 +352,16 @@ namespace ROS2
 
         internal static NativeRCLWriteToQosProfileHandleType native_rcl_write_to_qos_profile_handle = null;
 
+        internal delegate RCLRet NativeRCLCreateClockHandleType(
+            ref SafeClockHandle clockHandles, int clockType);
+
+        internal static NativeRCLCreateClockHandleType native_rcl_create_clock_handle = null;
+
+        internal delegate RCLRet NativeRCLDestroyClockHandleType(
+            IntPtr clockHandle);
+
+        internal static NativeRCLDestroyClockHandleType native_rcl_destroy_clock_handle = null;
+
         static RCLdotnetDelegates()
         {
             _dllLoadUtils = DllLoadUtilsFactory.GetDllLoadUtils();
@@ -704,6 +714,18 @@ namespace ROS2
             RCLdotnetDelegates.native_rcl_write_to_qos_profile_handle =
                 (NativeRCLWriteToQosProfileHandleType)Marshal.GetDelegateForFunctionPointer(
                     native_rcl_write_to_qos_profile_handle_ptr, typeof(NativeRCLWriteToQosProfileHandleType));
+
+            IntPtr native_rcl_create_clock_handle_ptr =
+                _dllLoadUtils.GetProcAddress(nativeLibrary, "native_rcl_create_clock_handle");
+            RCLdotnetDelegates.native_rcl_create_clock_handle =
+                (NativeRCLCreateClockHandleType)Marshal.GetDelegateForFunctionPointer(
+                    native_rcl_create_clock_handle_ptr, typeof(NativeRCLCreateClockHandleType));
+
+            IntPtr native_rcl_destroy_clock_handle_ptr =
+                _dllLoadUtils.GetProcAddress(nativeLibrary, "native_rcl_destroy_clock_handle");
+            RCLdotnetDelegates.native_rcl_destroy_clock_handle =
+                (NativeRCLDestroyClockHandleType)Marshal.GetDelegateForFunctionPointer(
+                    native_rcl_destroy_clock_handle_ptr, typeof(NativeRCLDestroyClockHandleType));
         }
     }
 
@@ -742,6 +764,20 @@ namespace ROS2
             {
                 SpinOnce(node, 500);
             }
+        }
+
+        public static Clock CreateClock(ClockType type = ClockType.ROSTime)
+        {
+            var clockHandle = new SafeClockHandle();
+            RCLRet ret = RCLdotnetDelegates.native_rcl_create_clock_handle(ref clockHandle, (int)type);
+            if (ret != RCLRet.Ok)
+            {
+                clockHandle.Dispose();
+                throw RCLExceptionHelper.CreateFromReturnValue(ret, $"{nameof(RCLdotnetDelegates.native_rcl_create_clock_handle)}() failed.");
+            }
+
+            Clock clock = new Clock(clockHandle);
+            return clock;
         }
 
         private static SafeWaitSetHandle CreateWaitSet(
