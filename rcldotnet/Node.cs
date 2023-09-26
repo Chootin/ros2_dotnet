@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using ROS2.ParameterInfrastructure;
 using ROS2.Utils;
 
 namespace ROS2
@@ -219,6 +220,8 @@ namespace ROS2
 
         private readonly IList<ActionServer> _actionServers;
 
+        private readonly ParameterServer _parameterServer;
+
         internal Node(SafeNodeHandle handle)
         {
             Handle = handle;
@@ -228,6 +231,8 @@ namespace ROS2
             _guardConditions = new List<GuardCondition>();
             _actionClients = new List<ActionClient>();
             _actionServers = new List<ActionServer>();
+
+            _parameterServer = new ParameterServer(this);
         }
 
         public IList<Subscription> Subscriptions => _subscriptions;
