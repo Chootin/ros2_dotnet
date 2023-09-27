@@ -16,7 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using ROS2.ParameterInfrastructure;
+using rcl_interfaces.msg;
 using ROS2.Utils;
 
 namespace ROS2
@@ -208,6 +208,8 @@ namespace ROS2
 
     public sealed class Node
     {
+        private const string ParameterNameSimulatedTime = "use_sim_time";
+
         private readonly IList<Subscription> _subscriptions;
 
         private readonly IList<Service> _services;
@@ -220,7 +222,7 @@ namespace ROS2
 
         private readonly IList<ActionServer> _actionServers;
 
-        private readonly ParameterServer _parameterServer;
+        private readonly ParameterHandler _parameterHandler;
 
         internal Node(SafeNodeHandle handle)
         {
@@ -232,7 +234,9 @@ namespace ROS2
             _actionClients = new List<ActionClient>();
             _actionServers = new List<ActionServer>();
 
-            _parameterServer = new ParameterServer(this);
+            _parameterHandler = new ParameterHandler(this);
+            _parameterHandler.DeclareParameter(ParameterNameSimulatedTime, false);
+            _parameterHandler.AddOnSetParameterCallback(OnSetParameters);
         }
 
         public IList<Subscription> Subscriptions => _subscriptions;
@@ -256,6 +260,14 @@ namespace ROS2
         // By relying on the GC/Finalizer of SafeHandle the handle only gets
         // Disposed if the node is not live anymore.
         internal SafeNodeHandle Handle { get; }
+
+        private void OnSetParameters(List<Parameter> parameters)
+        {
+            Parameter simulatedTimeParameter = parameters.Find(parameter => parameter.Name == ParameterNameSimulatedTime);
+            if (simulatedTimeParameter == null) return;
+
+            // TODO: Update clock setup if applicable.
+        }
 
         public Publisher<T> CreatePublisher<T>(string topic, QosProfile qosProfile = null) where T : IRosMessage
         {
