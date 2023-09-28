@@ -87,7 +87,7 @@ namespace ROS2
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate RCLRet NativeRCLActionCreateServerHandleType(
-            ref SafeActionServerHandle actionServerHandle, SafeNodeHandle nodeHandle, [MarshalAs(UnmanagedType.LPStr)] string actionName, IntPtr typesupportHandle);
+            ref SafeActionServerHandle actionServerHandle, SafeNodeHandle nodeHandle, SafeClockHandle clockHandle, [MarshalAs(UnmanagedType.LPStr)] string actionName, IntPtr typesupportHandle);
 
         internal static NativeRCLActionCreateServerHandleType native_rcl_action_create_server_handle = null;
 
@@ -456,7 +456,7 @@ namespace ROS2
             IntPtr typeSupport = ActionDefinitionStaticMemberCache<TAction, TGoal, TResult, TFeedback>.GetTypeSupport();
 
             var actionServerHandle = new SafeActionServerHandle();
-            RCLRet ret = NodeDelegates.native_rcl_action_create_server_handle(ref actionServerHandle, Handle, actionName, typeSupport);
+            RCLRet ret = NodeDelegates.native_rcl_action_create_server_handle(ref actionServerHandle, Handle, _clock.Handle, actionName, typeSupport);
             actionServerHandle.SetParent(Handle);
             if (ret != RCLRet.Ok)
             {
