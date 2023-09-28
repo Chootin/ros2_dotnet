@@ -8,6 +8,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rcl REQUIRED)
 find_package(rcl_action REQUIRED)
 find_package(action_msgs REQUIRED)
+find_package(rosgraph_msgs REQUIRED)
 find_package(rcl_interfaces REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(unique_identifier_msgs REQUIRED)
@@ -39,6 +40,7 @@ set(CS_SOURCES
   ActionServer.cs
   ActionServerGoalHandle.cs
   Client.cs
+  Clock.cs
   GuardCondition.cs
   GuidExtensions.cs
   MessageStaticMemberCache.cs
@@ -52,6 +54,7 @@ set(CS_SOURCES
   SafeActionGoalHandle.cs
   SafeActionServerHandle.cs
   SafeClientHandle.cs
+  SafeClockHandle.cs
   SafeGuardConditionHandle.cs
   SafeNodeHandle.cs
   SafePublisherHandle.cs
@@ -63,13 +66,21 @@ set(CS_SOURCES
   Service.cs
   ServiceDefinitionStaticMemberCache.cs
   Subscription.cs
+  ParameterHandling/ParameterHandler.cs
+  ParameterHandling/Exceptions/InvalidParameterTypeException.cs
+  ParameterHandling/Exceptions/ParameterException.cs
+  ParameterHandling/Exceptions/ParameterImmutableException.cs
+  ParameterHandling/Exceptions/ParameterNotDeclaredException.cs
+  ParameterHandling/Exceptions/ParameterTypeMismatchException.cs
 )
 
 find_package(rcldotnet_common REQUIRED)
 
 set(_assemblies_dep_dlls
   ${action_msgs_ASSEMBLIES_DLL}
+  ${rosgraph_msgs_ASSEMBLIES_DLL}
   ${builtin_interfaces_ASSEMBLIES_DLL}
+  ${rcl_interfaces_ASSEMBLIES_DLL}
   ${rcldotnet_common_ASSEMBLIES_DLL}
   ${unique_identifier_msgs_ASSEMBLIES_DLL}
 )
@@ -87,6 +98,7 @@ ament_export_assemblies_dll("lib/${PROJECT_NAME}/dotnet/${PROJECT_NAME}_assembli
 add_library(${PROJECT_NAME}_native SHARED
   rcldotnet_action_client.c
   rcldotnet_client.c
+  rcldotnet_clock.c
   rcldotnet_guard_condition.c
   rcldotnet_node.c
   rcldotnet_publisher.c
@@ -95,6 +107,7 @@ add_library(${PROJECT_NAME}_native SHARED
 
 ament_target_dependencies(${PROJECT_NAME}_native
   "action_msgs"
+  "rosgraph_msgs"
   "builtin_interfaces"
   "unique_identifier_msgs"
   "rcl"
