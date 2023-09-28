@@ -488,5 +488,64 @@ namespace ROS2
         public string GetName() => NodeDelegates.native_rcl_get_name_handle(Handle);
 
         public string GetNamespace() => NodeDelegates.native_rcl_get_namespace_handle(Handle);
+
+        #region Parameter Handling Passthroughs
+
+        public void DeclareParameter(string name, bool defaultValue = false, ParameterDescriptor descriptor = null) =>
+            _parameterHandler.DeclareParameter(name, defaultValue, descriptor);
+
+        public void DeclareParameter(string name, int defaultValue = 0, ParameterDescriptor descriptor = null) =>
+            _parameterHandler.DeclareParameter(name, defaultValue, descriptor);
+
+        public void DeclareParameter(string name, long defaultValue = 0L, ParameterDescriptor descriptor = null) =>
+            _parameterHandler.DeclareParameter(name, defaultValue, descriptor);
+
+        public void DeclareParameter(string name, float defaultValue = 0.0f, ParameterDescriptor descriptor = null) =>
+            _parameterHandler.DeclareParameter(name, defaultValue, descriptor);
+
+        public void DeclareParameter(string name, double defaultValue = 0.0, ParameterDescriptor descriptor = null) =>
+            _parameterHandler.DeclareParameter(name, defaultValue, descriptor);
+
+        public void DeclareParameter(string name, string defaultValue = "", ParameterDescriptor descriptor = null) =>
+            _parameterHandler.DeclareParameter(name, defaultValue, descriptor);
+
+        public void DeclareParameter(string name, IEnumerable<byte> defaultValue = null, ParameterDescriptor descriptor = null) =>
+            _parameterHandler.DeclareParameter(name, defaultValue, descriptor);
+
+        public void DeclareParameter(string name, IEnumerable<bool> defaultValue = null, ParameterDescriptor descriptor = null) =>
+            _parameterHandler.DeclareParameter(name, defaultValue, descriptor);
+
+        public void DeclareParameter(string name, IEnumerable<long> defaultValue = null, ParameterDescriptor descriptor = null) =>
+            _parameterHandler.DeclareParameter(name, defaultValue, descriptor);
+
+        public void DeclareParameter(string name, IEnumerable<double> defaultValue = null, ParameterDescriptor descriptor = null) =>
+            _parameterHandler.DeclareParameter(name, defaultValue, descriptor);
+
+        public void DeclareParameter(string name, IEnumerable<string> defaultValue = null, ParameterDescriptor descriptor = null) =>
+            _parameterHandler.DeclareParameter(name, defaultValue, descriptor);
+
+        public void UndeclareParameter(string name) => _parameterHandler.UndeclareParameter(name);
+
+        public List<ParameterValue> GetParameters(IEnumerable<string> names) => _parameterHandler.GetParameters(names);
+
+        public ParameterValue GetParameter(string name) => _parameterHandler.GetParameter(name);
+
+        public List<SetParametersResult> SetParameters(List<Parameter> parameters) =>
+            _parameterHandler.SetParameters(parameters);
+
+        public SetParametersResult SetParametersAtomically(List<Parameter> parameters) =>
+            _parameterHandler.SetParametersAtomically(parameters);
+
+        public SetParametersResult SetParameter(Parameter parameter) => _parameterHandler.SetParameter(parameter);
+
+        public bool HasParameter(string name) => _parameterHandler.HasParameter(name);
+
+        public void AddOnSetParameterCallback(Action<List<Parameter>> callback) =>
+            _parameterHandler.AddOnSetParameterCallback(callback);
+
+        public void RemoveOnSetParameterCallback(Action<List<Parameter>> callback) =>
+            _parameterHandler.RemoveOnSetParameterCallback(callback);
+
+        #endregion
     }
 }
