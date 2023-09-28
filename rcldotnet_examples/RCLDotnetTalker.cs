@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-
+using rcl_interfaces.msg;
 using ROS2;
 
 namespace ConsoleApplication
@@ -12,6 +12,7 @@ namespace ConsoleApplication
             RCLdotnet.Init();
 
             Node node = RCLdotnet.CreateNode("talker");
+            node.DeclareParameter("publish_string_prefix", "Hello World");
 
             Publisher<std_msgs.msg.String> chatterPub = node.CreatePublisher<std_msgs.msg.String>("chatter");
 
@@ -21,10 +22,12 @@ namespace ConsoleApplication
 
             while (RCLdotnet.Ok())
             {
-                msg.Data = "Hello World: " + i;
+                msg.Data = $"{node.GetParameter("publish_string_prefix").StringValue}: {i}";
                 i++;
-                Console.WriteLine("Publishing: \"" + msg.Data + "\"");
+                Console.WriteLine($"Publishing: \"{msg.Data}");
                 chatterPub.Publish(msg);
+
+                RCLdotnet.SpinOnce(node, 100L);
 
                 // Sleep a little bit between each message
                 Thread.Sleep(1000);

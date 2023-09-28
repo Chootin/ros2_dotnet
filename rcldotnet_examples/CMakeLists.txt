@@ -15,13 +15,14 @@ find_package(rcldotnet REQUIRED)
 
 find_package(dotnet_cmake_module REQUIRED)
 
-set(CSHARP_TARGET_FRAMEWORK "netcoreapp2.0")
+set(CSHARP_TARGET_FRAMEWORK "netcoreapp7.0")
 find_package(DotNETExtra REQUIRED)
 
 set(_assemblies_dep_dlls
     ${rcldotnet_common_ASSEMBLIES_DLL}
     ${rcldotnet_ASSEMBLIES_DLL}
     ${builtin_interfaces_ASSEMBLIES_DLL}
+    ${rcl_interfaces_ASSEMBLIES_DLL}
     ${std_msgs_ASSEMBLIES_DLL}
     ${std_srvs_ASSEMBLIES_DLL}
     ${test_msgs_ASSEMBLIES_DLL}
