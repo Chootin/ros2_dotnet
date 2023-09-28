@@ -40,7 +40,7 @@ int32_t native_rcl_disable_ros_time_override(void *clock_handle) {
 
 int32_t native_rcl_set_ros_time_override(void *clock_handle, int64_t time_point_value) {
   rcl_clock_t *clock = (rcl_clock_t *)clock_handle;
-  rcl_time_point_value_t *time_point_value_native = (rcl_time_point_value_t *)time_point_value;
+  rcl_time_point_value_t time_point_value_native = (rcl_time_point_value_t)time_point_value;
 
   return rcl_set_ros_time_override(clock, time_point_value_native);
 }
