@@ -29,4 +29,10 @@ int32_t RCLDOTNET_CDECL native_rcl_disable_ros_time_override(void *clock_handle)
 RCLDOTNET_EXPORT
 int32_t RCLDOTNET_CDECL native_rcl_set_ros_time_override(void *clock_handle, int64_t time_point_value);
 
+RCLDOTNET_EXPORT
+int32_t RCLDOTNET_CDECL native_rcl_clock_add_jump_callback(void *clock_handle, rcl_jump_threshold_t threshold, rcl_jump_callback_t callback);
+
+RCLDOTNET_EXPORT
+int32_t RCLDOTNET_CDECL native_rcl_clock_remove_jump_callback(void *clock_handle, rcl_jump_callback_t callback);
+
 #endif // RCLDOTNET_CLOCK_H
