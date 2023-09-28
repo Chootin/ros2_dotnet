@@ -110,99 +110,20 @@ namespace ROS2
             _dllLoadUtils = DllLoadUtilsFactory.GetDllLoadUtils();
             IntPtr nativeLibrary = _dllLoadUtils.LoadLibrary("rcldotnet");
 
-            IntPtr native_rcl_create_publisher_handle_ptr = _dllLoadUtils.GetProcAddress(
-                nativeLibrary, "native_rcl_create_publisher_handle");
-
-            NodeDelegates.native_rcl_create_publisher_handle =
-                (NativeRCLCreatePublisherHandleType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_create_publisher_handle_ptr, typeof(NativeRCLCreatePublisherHandleType));
-
-            IntPtr native_rcl_destroy_publisher_handle_ptr = _dllLoadUtils.GetProcAddress(
-                nativeLibrary, "native_rcl_destroy_publisher_handle");
-
-            NodeDelegates.native_rcl_destroy_publisher_handle =
-                (NativeRCLDestroyPublisherHandleType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_destroy_publisher_handle_ptr, typeof(NativeRCLDestroyPublisherHandleType));
-
-            IntPtr native_rcl_create_subscription_handle_ptr = _dllLoadUtils.GetProcAddress(
-                nativeLibrary, "native_rcl_create_subscription_handle");
-
-            NodeDelegates.native_rcl_create_subscription_handle =
-                (NativeRCLCreateSubscriptionHandleType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_create_subscription_handle_ptr, typeof(NativeRCLCreateSubscriptionHandleType));
-
-            IntPtr native_rcl_destroy_subscription_handle_ptr = _dllLoadUtils.GetProcAddress(
-                nativeLibrary, "native_rcl_destroy_subscription_handle");
-
-            NodeDelegates.native_rcl_destroy_subscription_handle =
-                (NativeRCLDestroySubscriptionHandleType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_destroy_subscription_handle_ptr, typeof(NativeRCLDestroySubscriptionHandleType));
-
-            IntPtr native_rcl_create_service_handle_ptr = _dllLoadUtils.GetProcAddress(
-                nativeLibrary, "native_rcl_create_service_handle");
-
-            NodeDelegates.native_rcl_create_service_handle =
-                (NativeRCLCreateServiceHandleType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_create_service_handle_ptr, typeof(NativeRCLCreateServiceHandleType));
-
-            IntPtr native_rcl_destroy_service_handle_ptr = _dllLoadUtils.GetProcAddress(
-                nativeLibrary, "native_rcl_destroy_service_handle");
-
-            NodeDelegates.native_rcl_destroy_service_handle =
-                (NativeRCLDestroyServiceHandleType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_destroy_service_handle_ptr, typeof(NativeRCLDestroyServiceHandleType));
-
-            IntPtr native_rcl_create_client_handle_ptr = _dllLoadUtils.GetProcAddress(
-                nativeLibrary, "native_rcl_create_client_handle");
-
-            NodeDelegates.native_rcl_create_client_handle =
-                (NativeRCLCreateClientHandleType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_create_client_handle_ptr, typeof(NativeRCLCreateClientHandleType));
-
-            IntPtr native_rcl_destroy_client_handle_ptr = _dllLoadUtils.GetProcAddress(
-                nativeLibrary, "native_rcl_destroy_client_handle");
-
-            NodeDelegates.native_rcl_destroy_client_handle =
-                (NativeRCLDestroyClientHandleType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_destroy_client_handle_ptr, typeof(NativeRCLDestroyClientHandleType));
-
-            IntPtr native_rcl_action_create_client_handle_ptr = _dllLoadUtils.GetProcAddress(
-                nativeLibrary, "native_rcl_action_create_client_handle");
-
-            NodeDelegates.native_rcl_action_create_client_handle =
-                (NativeRCLActionCreateClientHandleType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_action_create_client_handle_ptr, typeof(NativeRCLActionCreateClientHandleType));
-
-            IntPtr native_rcl_action_destroy_client_handle_ptr = _dllLoadUtils.GetProcAddress(
-                nativeLibrary, "native_rcl_action_destroy_client_handle");
-
-            NodeDelegates.native_rcl_action_destroy_client_handle =
-                (NativeRCLActionDestroyClientHandleType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_action_destroy_client_handle_ptr, typeof(NativeRCLActionDestroyClientHandleType));
-
-            IntPtr native_rcl_action_create_server_handle_ptr =
-                _dllLoadUtils.GetProcAddress(nativeLibrary, "native_rcl_action_create_server_handle");
-            NodeDelegates.native_rcl_action_create_server_handle =
-                (NativeRCLActionCreateServerHandleType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_action_create_server_handle_ptr, typeof(NativeRCLActionCreateServerHandleType));
-
-            IntPtr native_rcl_action_destroy_server_handle_ptr =
-                _dllLoadUtils.GetProcAddress(nativeLibrary, "native_rcl_action_destroy_server_handle");
-            NodeDelegates.native_rcl_action_destroy_server_handle =
-                (NativeRCLActionDestroyServerHandleType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_action_destroy_server_handle_ptr, typeof(NativeRCLActionDestroyServerHandleType));
-
-            IntPtr native_rcl_get_name_handle_ptr = _dllLoadUtils.GetProcAddress(
-                nativeLibrary, "native_rcl_get_name_handle");
-            NodeDelegates.native_rcl_get_name_handle =
-                (NativeRCLGetStringType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_get_name_handle_ptr, typeof(NativeRCLGetStringType));
-
-            IntPtr native_rcl_get_namespace_handle_ptr = _dllLoadUtils.GetProcAddress(
-                nativeLibrary, "native_rcl_get_namespace_handle");
-            NodeDelegates.native_rcl_get_namespace_handle =
-                (NativeRCLGetStringType)Marshal.GetDelegateForFunctionPointer(
-                    native_rcl_get_namespace_handle_ptr, typeof(NativeRCLGetStringType));
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_create_publisher_handle), out native_rcl_create_publisher_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_destroy_publisher_handle), out native_rcl_destroy_publisher_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_create_subscription_handle), out native_rcl_create_subscription_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_destroy_subscription_handle), out native_rcl_destroy_subscription_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_create_service_handle), out native_rcl_create_service_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_destroy_service_handle), out native_rcl_destroy_service_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_create_client_handle), out native_rcl_create_client_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_destroy_client_handle), out native_rcl_destroy_client_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_action_create_client_handle), out native_rcl_action_create_client_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_action_destroy_client_handle), out native_rcl_action_destroy_client_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_action_create_server_handle), out native_rcl_action_create_server_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_action_destroy_server_handle), out native_rcl_action_destroy_server_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_get_name_handle), out native_rcl_get_name_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_get_namespace_handle), out native_rcl_get_namespace_handle);
         }
     }
 
