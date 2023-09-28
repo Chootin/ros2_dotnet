@@ -56,6 +56,14 @@ namespace ROS2
                 Nanosec = (uint)nanosec
             };
         }
+
+        public static TimePoint FromMsg(Time message)
+        {
+            return new TimePoint
+            {
+                nanoseconds = message.Sec * SECONDS_TO_NANOSECONDS + message.Nanosec
+            };
+        }
     }
 
     internal static class ClockDelegates
@@ -63,19 +71,31 @@ namespace ROS2
         private static readonly DllLoadUtils _dllLoadUtils;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        internal delegate RCLRet NativeRCLClockGetNowType(
-            SafeClockHandle clockHandle, out TimePoint time);
+        internal delegate RCLRet NativeRCLClockFunctionType(SafeClockHandle clockHandle);
+
+        internal static NativeRCLClockFunctionType native_rcl_enable_ros_time_override = null;
+
+        internal static NativeRCLClockFunctionType native_rcl_disable_ros_time_override = null;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        internal delegate RCLRet NativeRCLClockGetNowType(SafeClockHandle clockHandle, out TimePoint time);
 
         internal static NativeRCLClockGetNowType native_rcl_clock_get_now = null;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        internal delegate RCLRet NativeRCLSetRosTimeOverrideType(SafeClockHandle clockHandle, long timePointValue);
+
+        internal static NativeRCLSetRosTimeOverrideType native_rcl_set_ros_time_override = null;
 
         static ClockDelegates()
         {
             _dllLoadUtils = DllLoadUtilsFactory.GetDllLoadUtils();
             IntPtr nativeLibrary = _dllLoadUtils.LoadLibrary("rcldotnet");
 
-            IntPtr native_rcl_clock_get_now_ptr = _dllLoadUtils.GetProcAddress(nativeLibrary, "native_rcl_clock_get_now");
-            ClockDelegates.native_rcl_clock_get_now = (NativeRCLClockGetNowType)Marshal.GetDelegateForFunctionPointer(
-                native_rcl_clock_get_now_ptr, typeof(NativeRCLClockGetNowType));
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_enable_ros_time_override), out native_rcl_enable_ros_time_override);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_disable_ros_time_override), out native_rcl_disable_ros_time_override);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_clock_get_now), out native_rcl_clock_get_now);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_set_ros_time_override), out native_rcl_set_ros_time_override);
         }
     }
 
@@ -96,6 +116,33 @@ namespace ROS2
             RCLExceptionHelper.CheckReturnValue(ret, $"{nameof(ClockDelegates.native_rcl_clock_get_now)}() failed.");
 
             return timePoint.ToMsg();
+        }
+
+        internal RCLRet EnableRosTimeOverride()
+        {
+            RCLRet ret = ClockDelegates.native_rcl_enable_ros_time_override(Handle);
+
+            RCLExceptionHelper.CheckReturnValue(ret, $"{nameof(ClockDelegates.native_rcl_enable_ros_time_override)}() failed.");
+
+            return ret;
+        }
+
+        internal RCLRet DisableRosTimeOverride()
+        {
+            RCLRet ret = ClockDelegates.native_rcl_disable_ros_time_override(Handle);
+
+            RCLExceptionHelper.CheckReturnValue(ret, $"{nameof(ClockDelegates.native_rcl_disable_ros_time_override)}() failed.");
+
+            return ret;
+        }
+
+        internal RCLRet SetRosTimeOverride(long timePointValue)
+        {
+            RCLRet ret = ClockDelegates.native_rcl_set_ros_time_override(Handle, timePointValue);
+
+            RCLExceptionHelper.CheckReturnValue(ret, $"{nameof(ClockDelegates.native_rcl_set_ros_time_override)}() failed.");
+
+            return ret;
         }
     }
 }
