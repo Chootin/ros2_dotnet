@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using rcl_interfaces.msg;
 using ROS2;
 
 namespace ConsoleApplication
