@@ -12,7 +12,6 @@ namespace ConsoleApplication
 
             Node node = RCLdotnet.CreateNode("talker");
 
-            node.Clock.AddJumpCallback(new JumpThreshold(true, 10.0, 0.0), OnJump);
             node.DeclareParameter("publish_string_prefix", "Hello World");
 
             Publisher<std_msgs.msg.String> chatterPub = node.CreatePublisher<std_msgs.msg.String>("chatter");
@@ -33,11 +32,6 @@ namespace ConsoleApplication
                 // Sleep a little bit between each message
                 Thread.Sleep(1000);
             }
-        }
-
-        private static void OnJump(TimeJump timeJump, bool beforeJump)
-        {
-            Console.WriteLine($"A time jump has occurred! beforeJump: {beforeJump}, delta: {timeJump.delta}, clockChange: {timeJump.clockChange}");
         }
     }
 }
