@@ -62,10 +62,12 @@ set(CS_SOURCES
   SafeRequestIdHandle.cs
   SafeServiceHandle.cs
   SafeSubscriptionHandle.cs
+  SafeTimerHandle.cs
   SafeWaitSetHandle.cs
   Service.cs
   ServiceDefinitionStaticMemberCache.cs
   Subscription.cs
+  Timer.cs
   ParameterHandling/ParameterHandler.cs
   ParameterHandling/Exceptions/InvalidParameterTypeException.cs
   ParameterHandling/Exceptions/ParameterException.cs

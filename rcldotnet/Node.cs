@@ -145,6 +145,8 @@ namespace ROS2
 
         private readonly IList<ActionServer> _actionServers;
 
+        private readonly IList<Timer> _timers;
+
         private readonly ParameterHandler _parameterHandler;
 
         internal Node(SafeNodeHandle handle)
@@ -159,6 +161,7 @@ namespace ROS2
             _guardConditions = new List<GuardCondition>();
             _actionClients = new List<ActionClient>();
             _actionServers = new List<ActionServer>();
+            _timers = new List<Timer>();
 
             _parameterHandler = new ParameterHandler(this);
             _parameterHandler.DeclareParameter(ParameterNameSimulatedTime, false);
@@ -181,6 +184,8 @@ namespace ROS2
         public IList<ActionClient> ActionClients => _actionClients;
 
         public IList<ActionServer> ActionServers => _actionServers;
+
+        public IList<Timer> Timers => _timers;
 
         // Node does intentionaly (for now) not implement IDisposable as this
         // needs some extra consideration how the type works after its
@@ -339,6 +344,32 @@ namespace ROS2
             var client = new Client<TService, TRequest, TResponse>(clientHandle, this);
             _clients.Add(client);
             return client;
+        }
+
+        public Timer CreateTimer(Duration period, Action callback)
+        {
+            var timerHandle = new SafeTimerHandle();
+
+            RCLRet ret = RCLdotnetDelegates.native_rcl_create_timer_handle(ref timerHandle, Clock.Handle, period, (handle, elapsed) => { callback?.Invoke(); });
+
+            if (ret != RCLRet.Ok)
+            {
+                timerHandle.Dispose();
+                throw RCLExceptionHelper.CreateFromReturnValue(ret, $"{nameof(RCLdotnetDelegates.native_rcl_create_timer_handle)}() failed.");
+            }
+
+            var timer = new Timer(timerHandle);
+            _timers.Add(timer);
+            return timer;
+        }
+
+        public bool DestroyTimer(Timer timer)
+        {
+            if (!_timers.Contains(timer)) return false;
+
+            _timers.Remove(timer);
+            timer.Handle.Dispose();
+            return true;
         }
 
         public GuardCondition CreateGuardCondition(Action callback)
