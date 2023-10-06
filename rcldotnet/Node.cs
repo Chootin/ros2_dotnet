@@ -350,10 +350,7 @@ namespace ROS2
         {
             var timerHandle = new SafeTimerHandle();
 
-            TimerCallback callbackInternal = (handle, elapsed) =>
-            {
-                callback?.Invoke(elapsed);
-            };
+            TimerCallback callbackInternal = (_, elapsed) => callback?.Invoke(elapsed);
 
             RCLRet ret = RCLdotnetDelegates.native_rcl_create_timer_handle(ref timerHandle, Clock.Handle, period, callbackInternal);
 
@@ -363,7 +360,8 @@ namespace ROS2
                 throw RCLExceptionHelper.CreateFromReturnValue(ret, $"{nameof(RCLdotnetDelegates.native_rcl_create_timer_handle)}() failed.");
             }
 
-            var timer = new Timer(timerHandle);
+            var timer = new Timer(timerHandle, callbackInternal);
+
             _timers.Add(timer);
             return timer;
         }
