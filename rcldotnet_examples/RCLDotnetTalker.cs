@@ -19,10 +19,10 @@ namespace ConsoleApplication
 
             _chatterPub = _node.CreatePublisher<std_msgs.msg.String>("chatter");
 
-            _node.CreateTimer(new Duration(1.0), PublishChatter);
+            _node.CreateTimer(TimeSpan.FromSeconds(1.0), PublishChatter);
         }
 
-        private void PublishChatter(Duration elapsed)
+        private void PublishChatter(TimeSpan elapsed)
         {
             _msg.Data = $"{_node.GetParameter("publish_string_prefix").StringValue}: {_i}";
             Console.WriteLine($"Publishing: \"{_msg.Data}\"");
