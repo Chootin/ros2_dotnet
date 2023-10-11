@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 using rcl_interfaces.msg;
 using ROS2.Utils;
 
@@ -461,6 +462,15 @@ namespace ROS2
         public string GetName() => NodeDelegates.native_rcl_get_name_handle(Handle);
 
         public string GetNamespace() => NodeDelegates.native_rcl_get_namespace_handle(Handle);
+
+        public string GetNamespacedName()
+        {
+            StringBuilder builder = new StringBuilder(GetNamespace());
+            if (builder.Length > 1) builder.Append('/');
+
+            builder.Append(GetName());
+            return builder.ToString();
+        }
 
         #region Parameter Handling Passthroughs
 
