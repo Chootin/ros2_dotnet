@@ -164,8 +164,8 @@ namespace ROS2
             _timers = new List<Timer>();
 
             _parameterHandler = new ParameterHandler(this);
-            _parameterHandler.DeclareParameter(ParameterNameSimulatedTime, false);
             _parameterHandler.AddOnSetParameterCallback(OnSetParameters);
+            _parameterHandler.DeclareParameter(ParameterNameSimulatedTime, false);
         }
 
         public Clock Clock => _clock;
