@@ -16,7 +16,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 using rcl_interfaces.msg;
 using ROS2.Utils;
 
@@ -98,13 +97,11 @@ namespace ROS2
 
         internal static NativeRCLActionDestroyServerHandleType native_rcl_action_destroy_server_handle = null;
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        internal delegate string NativeRCLGetStringType(
-            SafeNodeHandle nodeHandle);
+        internal static RCLdotnetDelegates.NativeRCLGetStringType native_rcl_node_get_name_handle = null;
 
-        internal static NativeRCLGetStringType native_rcl_get_name_handle = null;
+        internal static RCLdotnetDelegates.NativeRCLGetStringType native_rcl_node_get_namespace_handle = null;
 
-        internal static NativeRCLGetStringType native_rcl_get_namespace_handle = null;
+        internal static RCLdotnetDelegates.NativeRCLGetStringType native_rcl_node_get_fully_qualified_name_handle = null;
 
         static NodeDelegates()
         {
@@ -123,8 +120,9 @@ namespace ROS2
             _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_action_destroy_client_handle), out native_rcl_action_destroy_client_handle);
             _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_action_create_server_handle), out native_rcl_action_create_server_handle);
             _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_action_destroy_server_handle), out native_rcl_action_destroy_server_handle);
-            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_get_name_handle), out native_rcl_get_name_handle);
-            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_get_namespace_handle), out native_rcl_get_namespace_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_node_get_name_handle), out native_rcl_node_get_name_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_node_get_namespace_handle), out native_rcl_node_get_namespace_handle);
+            _dllLoadUtils.RegisterNativeFunction(nativeLibrary, nameof(native_rcl_node_get_fully_qualified_name_handle), out native_rcl_node_get_fully_qualified_name_handle);
         }
     }
 
@@ -170,6 +168,12 @@ namespace ROS2
         }
 
         public Clock Clock => _clock;
+
+        public string Name => RCLdotnet.GetStringFromNativeDelegate(NodeDelegates.native_rcl_node_get_name_handle, Handle);
+
+        public string Namespace => RCLdotnet.GetStringFromNativeDelegate(NodeDelegates.native_rcl_node_get_namespace_handle, Handle);
+
+        public string FullyQualifiedName => RCLdotnet.GetStringFromNativeDelegate(NodeDelegates.native_rcl_node_get_fully_qualified_name_handle, Handle);
 
         public IList<Subscription> Subscriptions => _subscriptions;
 
@@ -457,19 +461,6 @@ namespace ROS2
         private static CancelResponse DefaultCancelCallback(ActionServerGoalHandle goalHandle)
         {
             return CancelResponse.Reject;
-        }
-
-        public string GetName() => NodeDelegates.native_rcl_get_name_handle(Handle);
-
-        public string GetNamespace() => NodeDelegates.native_rcl_get_namespace_handle(Handle);
-
-        public string GetNamespacedName()
-        {
-            StringBuilder builder = new StringBuilder(GetNamespace());
-            if (builder.Length > 1) builder.Append('/');
-
-            builder.Append(GetName());
-            return builder.ToString();
         }
 
         #region Parameter Handling Passthroughs

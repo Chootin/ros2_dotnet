@@ -386,6 +386,9 @@ namespace ROS2
 
         internal static NativeRCLDestroyTimerHandleType native_rcl_destroy_timer_handle = null;
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        internal delegate IntPtr NativeRCLGetStringType(SafeHandle handle);
+
         static RCLdotnetDelegates()
         {
             _dllLoadUtils = DllLoadUtilsFactory.GetDllLoadUtils();
@@ -1566,6 +1569,25 @@ namespace ROS2
                 if (mustRelease)
                 {
                     messageHandle.DangerousRelease();
+                }
+            }
+        }
+
+        internal static string GetStringFromNativeDelegate<T>(RCLdotnetDelegates.NativeRCLGetStringType nativeDelegate, T safeHandle) where T : SafeHandle
+        {
+            bool mustRelease = false;
+            try
+            {
+                // This avoids accessing a invalid/freed pointer if some other thread disposes the SafeNodeHandle.
+                safeHandle.DangerousAddRef(ref mustRelease);
+                IntPtr namePtr = nativeDelegate(safeHandle);
+                return Marshal.PtrToStringAnsi(namePtr);
+            }
+            finally
+            {
+                if (mustRelease)
+                {
+                    safeHandle.DangerousRelease();
                 }
             }
         }
