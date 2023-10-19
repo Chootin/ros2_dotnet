@@ -107,6 +107,45 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
 @[end for]@
     }
 
+    /// Create a deep copy of @(type_name)
+    public @(type_name)(@type_name other)
+    {
+@[for member in message.structure.members]@
+@{  member_has_value_type = isinstance(member.type, AbstractSequence) or isinstance(member.type, Array)}@
+@[  if isinstance(member.type, AbstractWString) or (member_has_value_type and isinstance(member.type.value_type, AbstractWString))]@
+        // TODO: Unicode types are not supported
+@[  elif isinstance(member.type, Array)]@
+@{      field_name = get_field_name(type_name, member.name)}@
+        @(field_name) = new @(get_dotnet_type(member.type.value_type))[@(member.type.size)];
+@[      if isinstance(member.type.value_type, BasicType) or isinstance(member.type.value_type, AbstractString)]@
+        Array.Copy(other.@(field_name), @(field_name), @(member.type.size));
+@[      else]@
+        for (var i__local_variable = 0; i__local_variable < @(member.type.size); i__local_variable++)
+        {
+            @(field_name)[i__local_variable] = new @(get_dotnet_type(member.type.value_type))(other.@(field_name)[i__local_variable]);
+        }
+@[      end if]@
+@[  elif isinstance(member.type, AbstractSequence)]@
+@{      field_name = get_field_name(type_name, member.name)}@
+@[      if isinstance(member.type.value_type, BasicType) or isinstance(member.type.value_type, AbstractString)]@
+        @(field_name) = new List<@(get_dotnet_type(member.type.value_type))>(other.@(field_name));
+@[      else]@
+        @(field_name) = new List<@(get_dotnet_type(member.type.value_type))>(other.@(field_name).Count);
+        foreach (var element__local_variable in other.@(field_name))
+        {
+            @(field_name).Add(new @(get_dotnet_type(member.type.value_type))(element__local_variable));
+        }
+@[      end if]@
+@[  elif isinstance(member.type, BasicType) or isinstance(member.type, AbstractString)]@
+@{      field_name = get_field_name(type_name, member.name)}@
+        @(field_name) = other.@(field_name);
+@[  else]@
+@{      field_name = get_field_name(type_name, member.name)}@
+        @(field_name) = new @(get_dotnet_type(member.type))(other.@(field_name));
+@[  end if]@
+@[end for]@
+    }
+
     static @(type_name)()
     {
         dllLoadUtils = DllLoadUtilsFactory.GetDllLoadUtils();
