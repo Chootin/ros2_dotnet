@@ -30,6 +30,7 @@ from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import IdlContent
 from rosidl_parser.definition import IdlLocator
 from rosidl_parser.definition import NamespacedType
+from rosidl_parser.definition import EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME
 from rosidl_parser.parser import parse_idl_file
 
 class Underscorer(string.Formatter):
@@ -164,3 +165,20 @@ def get_field_name(type_name, field_name):
         return "{0}_".format(type_name)
     else:
         return convert_lower_case_underscore_to_camel_case(field_name)
+
+def is_unsupported_type(type_):
+    return isinstance(type_, AbstractWString) or (hasattr(type_, 'value_type') and isinstance(type_.value_type, AbstractWString))
+
+def get_argument_name(type_name, field_name):
+    property_name = get_field_name(type_name, field_name)
+    return property_name[0].lower() + property_name[1:]
+
+def is_empty_message(members):    
+    if len(members) == 0 or members[0].name == EMPTY_STRUCTURE_REQUIRED_MEMBER_NAME:
+        return True
+
+    for member in members:
+        if not is_unsupported_type(member.type):
+            return False
+    
+    return True
