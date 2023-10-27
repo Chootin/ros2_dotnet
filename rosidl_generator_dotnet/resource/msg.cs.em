@@ -8,6 +8,7 @@ from rosidl_generator_dotnet import get_builtin_dotnet_type
 from rosidl_generator_dotnet import constant_value_to_dotnet
 from rosidl_generator_dotnet import is_unsupported_type
 from rosidl_generator_dotnet import is_empty_message
+from rosidl_generator_dotnet import sequence_block_copy_supported
 
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractGenericString
@@ -340,6 +341,16 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
     [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
     public static global::System.Runtime.InteropServices.SafeHandle __CreateMessageHandle() => native_create_native_message();
 
+    private static FieldInfo GetRuntimeField(Type type, string fieldName)
+    {
+        foreach (FieldInfo field in type.GetRuntimeFields())
+        {
+            if (field.Name == fieldName) return field;
+        }
+
+        throw new Exception($"Unable to find field {type.Name}.{fieldName}!");
+    }
+
     [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
     public void __ReadFromHandle(global::System.IntPtr messageHandle) {
 @[if not is_empty_message(message.structure.members)]@
@@ -419,15 +430,26 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
                 throw new Exception("The method 'native_init_seqence_field_@(member.name)_message()' failed.");
             }
 @[          end if]@
+@[          if sequence_block_copy_supported(member.type.value_type)]@
+@{              field_name = get_field_name(type_name, member.name)}@
+            Type listType = @(field_name).GetType();
+            FieldInfo itemsField = GetRuntimeField(listType, "_items");
+
+            if (!(itemsField.GetValue(@(field_name)) is @(get_dotnet_type(member.type.value_type))[] itemsArray))
+                throw new Exception($"Unable to access contents of {listType.Name}._items!");
+            
+            // TODO Write (write) method on c side to take itemsArray...
+@[          else]@
             for (var i__local_variable = 0; i__local_variable < count__local_variable; i__local_variable++)
             {
                 var value__local_variable = @(get_field_name(type_name, member.name))[i__local_variable];
-@[          if isinstance(member.type.value_type, BasicType) or isinstance(member.type.value_type, AbstractString)]@
+@[              if isinstance(member.type.value_type, BasicType) or isinstance(member.type.value_type, AbstractString)]@
                 native_write_field_@(member.name)(native_get_field_@(member.name)_message(messageHandle, i__local_variable), value__local_variable);
-@[          else]@
+@[              else]@
                 value__local_variable.__WriteToHandle(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
-@[          end if]@
+@[              end if]@
             }
+@[          end if]@
         }
 @[      elif isinstance(member.type, BasicType) or isinstance(member.type, AbstractString)]@
         native_write_field_@(member.name)(messageHandle, @(get_field_name(type_name, member.name)));

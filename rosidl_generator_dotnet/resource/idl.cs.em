@@ -16,6 +16,7 @@ from rosidl_generator_dotnet import get_dotnet_type_for_message
 using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
+using System.Reflection;
 
 using ROS2.Utils;
 

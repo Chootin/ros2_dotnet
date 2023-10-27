@@ -182,3 +182,10 @@ def is_empty_message(members):
             return False
     
     return True
+
+def sequence_block_copy_supported(type_):
+    if not hasattr(type_, 'typename'):
+        return False
+    
+    type_name = type_.typename
+    return type_name == 'byte' or type_name == 'uint8'
