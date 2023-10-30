@@ -297,6 +297,13 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
         IntPtr messageHandle, [MarshalAs (UnmanagedType.LPStr)] string value);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate IntPtr NativeReadField@(get_field_name(type_name, member.name))Type(IntPtr messageHandle);
+@[            elif sequence_block_copy_supported(member.type.value_type)]@
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate @(get_dotnet_type(member.type.value_type)) NativeReadField@(get_field_name(type_name, member.name))Type(
+        IntPtr messageHandle);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void NativeWriteField@(get_field_name(type_name, member.name))Type(
+        IntPtr messageHandle, @(get_dotnet_type(member.type.value_type))[] value, int size);
 @[            else]@
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate @(get_dotnet_type(member.type.value_type)) NativeReadField@(get_field_name(type_name, member.name))Type(
@@ -432,13 +439,17 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
 @[          end if]@
 @[          if sequence_block_copy_supported(member.type.value_type)]@
 @{              field_name = get_field_name(type_name, member.name)}@
+@[              if isinstance(member.type, AbstractSequence)]@
             Type listType = @(field_name).GetType();
             FieldInfo itemsField = GetRuntimeField(listType, "_items");
 
             if (!(itemsField.GetValue(@(field_name)) is @(get_dotnet_type(member.type.value_type))[] itemsArray))
                 throw new Exception($"Unable to access contents of {listType.Name}._items!");
             
-            // TODO Write (write) method on c side to take itemsArray...
+            native_write_field_@(member.name)(messageHandle, itemsArray, itemsArray.Length);
+@[              else]@
+            native_write_field_@(member.name)(messageHandle, @(field_name), @(field_name).Length);
+@[              end if]@
 @[          else]@
             for (var i__local_variable = 0; i__local_variable < count__local_variable; i__local_variable++)
             {

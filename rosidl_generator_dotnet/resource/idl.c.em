@@ -26,6 +26,7 @@ dotnet_header_filename = '/'.join(dotnet_header_parts)
 #include <stdio.h>
 #include <assert.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <rcutils/allocator.h>
 
