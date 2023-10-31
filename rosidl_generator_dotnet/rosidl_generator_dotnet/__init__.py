@@ -183,9 +183,22 @@ def is_empty_message(members):
     
     return True
 
-def sequence_block_copy_supported(type_):
+def is_sequence_block_copy_supported(type_):
     if not hasattr(type_, 'typename'):
         return False
     
     type_name = type_.typename
-    return type_name == 'byte' or type_name == 'uint8'
+    if type_name == 'byte': return True
+    if type_name == 'int8': return True
+    if type_name == 'uint8': return True
+    if type_name == 'int16': return True
+    if type_name == 'uint16': return True
+    if type_name == 'int32': return True
+    if type_name == 'uint32': return True
+    if type_name == 'int64': return True
+    if type_name == 'uint64': return True
+    if type_name == 'float': return True
+    if type_name == 'double': return True
+    if type_name == 'char': return True
+
+    return False

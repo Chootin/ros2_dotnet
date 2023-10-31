@@ -8,7 +8,7 @@ from rosidl_generator_dotnet import get_builtin_dotnet_type
 from rosidl_generator_dotnet import constant_value_to_dotnet
 from rosidl_generator_dotnet import is_unsupported_type
 from rosidl_generator_dotnet import is_empty_message
-from rosidl_generator_dotnet import sequence_block_copy_supported
+from rosidl_generator_dotnet import is_sequence_block_copy_supported
 
 from rosidl_parser.definition import AbstractNestedType
 from rosidl_parser.definition import AbstractGenericString
@@ -218,8 +218,8 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
             native_get_field_@(member.name)_message_ptr, typeof(NativeGetField@(get_field_name(type_name, member.name))Type));
 
 @[        if isinstance(member.type, AbstractSequence)]@
-        @(type_name).native_getsize_field_@(member.name)_message = (NativeGetSizeField@(get_field_name(type_name, member.name))Type)Marshal.GetDelegateForFunctionPointer(
-            native_getsize_field_@(member.name)_message_ptr, typeof(NativeGetSizeField@(get_field_name(type_name, member.name))Type));
+        @(type_name).native_getsize_field_@(member.name)_message = (NativeGetsize_field__local_variable@(get_field_name(type_name, member.name))Type)Marshal.GetDelegateForFunctionPointer(
+            native_getsize_field_@(member.name)_message_ptr, typeof(NativeGetsize_field__local_variable@(get_field_name(type_name, member.name))Type));
         @(type_name).native_init_seqence_field_@(member.name)_message = (NativeInitSequenceField@(get_field_name(type_name, member.name))Type)Marshal.GetDelegateForFunctionPointer(
             native_init_sequence_field_@(member.name)_message_ptr, typeof(NativeInitSequenceField@(get_field_name(type_name, member.name))Type));
 @[        end if]@
@@ -273,7 +273,7 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
 @[    elif isinstance(member.type, Array) or isinstance(member.type, AbstractSequence)]@
     private static NativeGetField@(get_field_name(type_name, member.name))Type native_get_field_@(member.name)_message = null;
 @[        if isinstance(member.type, AbstractSequence)]@
-    private static NativeGetSizeField@(get_field_name(type_name, member.name))Type native_getsize_field_@(member.name)_message = null;
+    private static NativeGetsize_field__local_variable@(get_field_name(type_name, member.name))Type native_getsize_field_@(member.name)_message = null;
     private static NativeInitSequenceField@(get_field_name(type_name, member.name))Type native_init_seqence_field_@(member.name)_message = null;
 @[        end if]@
 @[        if isinstance(member.type.value_type, BasicType) or isinstance(member.type.value_type, AbstractString)]@
@@ -285,7 +285,7 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
         IntPtr messageHandle, int index);
 @[        if isinstance(member.type, AbstractSequence)]@
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate int NativeGetSizeField@(get_field_name(type_name, member.name))Type(
+    private delegate int NativeGetsize_field__local_variable@(get_field_name(type_name, member.name))Type(
         IntPtr messageHandle);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate bool NativeInitSequenceField@(get_field_name(type_name, member.name))Type(
@@ -297,10 +297,10 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
         IntPtr messageHandle, [MarshalAs (UnmanagedType.LPStr)] string value);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate IntPtr NativeReadField@(get_field_name(type_name, member.name))Type(IntPtr messageHandle);
-@[            elif sequence_block_copy_supported(member.type.value_type)]@
+@[            elif is_sequence_block_copy_supported(member.type.value_type)]@
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate @(get_dotnet_type(member.type.value_type)) NativeReadField@(get_field_name(type_name, member.name))Type(
-        IntPtr messageHandle);
+        IntPtr messageHandle, @(get_dotnet_type(member.type.value_type))[] value, int size);
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate void NativeWriteField@(get_field_name(type_name, member.name))Type(
         IntPtr messageHandle, @(get_dotnet_type(member.type.value_type))[] value, int size);
@@ -359,60 +359,89 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
     }
 
     [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
-    public void __ReadFromHandle(global::System.IntPtr messageHandle) {
+    public void __ReadFromHandle(global::System.IntPtr messageHandle)
+    {
 @[if not is_empty_message(message.structure.members)]@
 @[  for member in message.structure.members]@
+@{      field_name = get_field_name(type_name, member.name)}@
 @[      if is_unsupported_type(member.type)]@
 // TODO: Unicode types are not supported
 @[      elif isinstance(member.type, Array)]@
-      {
-          @(get_field_name(type_name, member.name)) = new @(get_dotnet_type(member.type.value_type))[@(member.type.size)];
-          for (int i__local_variable = 0; i__local_variable < @(member.type.size); i__local_variable++)
-          {
-@[          if isinstance(member.type.value_type, BasicType)]@
-              @(get_field_name(type_name, member.name))[i__local_variable] = native_read_field_@(member.name)(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
-@[          elif isinstance(member.type.value_type, AbstractString)]@
-              IntPtr pStr_@(get_field_name(type_name, member.name)) = native_read_field_@(member.name)(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
-              @(get_field_name(type_name, member.name))[i__local_variable] = Marshal.PtrToStringAnsi(pStr_@(get_field_name(type_name, member.name)));
+        {
+            if (@(field_name) == null || @(field_name).Length != @(member.type.size))
+            {
+                @(field_name) = new @(get_dotnet_type(member.type.value_type))[@(member.type.size)];
+            }
+@[          if is_sequence_block_copy_supported(member.type.value_type)]@
+            native_read_field_@(member.name)(messageHandle, @(field_name), @(member.type.size));
 @[          else]@
-              @(get_field_name(type_name, member.name))[i__local_variable] = new @(get_dotnet_type(member.type.value_type))();
-              @(get_field_name(type_name, member.name))[i__local_variable].__ReadFromHandle(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
+            for (int i__local_variable = 0; i__local_variable < @(member.type.size); i__local_variable++)
+            {
+@[              if isinstance(member.type.value_type, BasicType)]@
+                @(field_name)[i__local_variable] = native_read_field_@(member.name)(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
+@[              elif isinstance(member.type.value_type, AbstractString)]@
+                IntPtr pStr_@(field_name) = native_read_field_@(member.name)(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
+                @(field_name)[i__local_variable] = Marshal.PtrToStringAnsi(pStr_@(field_name));
+@[              else]@
+                @(field_name)[i__local_variable] = new @(get_dotnet_type(member.type.value_type))();
+                @(field_name)[i__local_variable].__ReadFromHandle(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
+@[              end if]
+            }
 @[          end if]
-          }
-      }
+        }
 @[      elif isinstance(member.type, AbstractSequence)]@
-      {
-          int size__local_variable = native_getsize_field_@(member.name)_message(messageHandle);
-          @(get_field_name(type_name, member.name)) = new List<@(get_dotnet_type(member.type.value_type))>(size__local_variable);
-          for (int i__local_variable = 0; i__local_variable < size__local_variable; i__local_variable++)
-          {
-@[          if isinstance(member.type.value_type, BasicType)]@
-              @(get_field_name(type_name, member.name)).Add(native_read_field_@(member.name)(native_get_field_@(member.name)_message(messageHandle, i__local_variable)));
-@[          elif isinstance(member.type.value_type, AbstractString)]@
-              IntPtr pStr_@(get_field_name(type_name, member.name)) = native_read_field_@(member.name)(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
-              @(get_field_name(type_name, member.name)).Add(Marshal.PtrToStringAnsi(pStr_@(get_field_name(type_name, member.name))));
+        {
+            int size__local_variable = native_getsize_field_@(member.name)_message(messageHandle);
+            if (@(field_name) == null)
+            {
+                @(field_name) = new List<@(get_dotnet_type(member.type.value_type))>(size__local_variable);
+            }
+
+@[          if is_sequence_block_copy_supported(member.type.value_type)]@
+            if (@(field_name).Capacity < size__local_variable) @(field_name).Capacity = size__local_variable;
+
+            Type list_type__local_variable = @(field_name).GetType();
+            FieldInfo items_field__local_variable = GetRuntimeField(list_type__local_variable, "_items");
+            FieldInfo size_field__local_variable = GetRuntimeField(list_type__local_variable, "_size");
+
+            if (!(items_field__local_variable.GetValue(@(field_name)) is @(get_dotnet_type(member.type.value_type))[] items_array__local_variable))
+                throw new Exception($"Unable to access contents of {list_type__local_variable.Name}._items!");
+            
+            native_read_field_@(member.name)(messageHandle, items_array__local_variable, size__local_variable);
+            size_field__local_variable.SetValue(@(field_name), size__local_variable);
 @[          else]@
-              @(get_field_name(type_name, member.name)).Add(new @(get_dotnet_type(member.type.value_type))());
-              @(get_field_name(type_name, member.name))[i__local_variable].__ReadFromHandle(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
+            @(field_name).Clear();
+            for (int i__local_variable = 0; i__local_variable < size__local_variable; i__local_variable++)
+            {
+@[              if isinstance(member.type.value_type, BasicType)]@
+                @(field_name).Add(native_read_field_@(member.name)(native_get_field_@(member.name)_message(messageHandle, i__local_variable)));
+@[              elif isinstance(member.type.value_type, AbstractString)]@
+                IntPtr pStr_@(field_name) = native_read_field_@(member.name)(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
+                @(field_name).Add(Marshal.PtrToStringAnsi(pStr_@(field_name)));
+@[              else]@
+                @(field_name).Add(new @(get_dotnet_type(member.type.value_type))());
+                @(field_name)[i__local_variable].__ReadFromHandle(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
+@[              end if]
+            }
 @[          end if]
-          }
-      }
+        }
 @[      elif isinstance(member.type, BasicType) or isinstance(member.type, AbstractString)]@
 @[          if isinstance(member.type, AbstractString)]@
-        IntPtr pStr_@(get_field_name(type_name, member.name)) = native_read_field_@(member.name)(messageHandle);
-        @(get_field_name(type_name, member.name)) = Marshal.PtrToStringAnsi(pStr_@(get_field_name(type_name, member.name)));
+        IntPtr pStr_@(field_name) = native_read_field_@(member.name)(messageHandle);
+        @(field_name) = Marshal.PtrToStringAnsi(pStr_@(field_name));
 @[          else]@
-        @(get_field_name(type_name, member.name)) = native_read_field_@(member.name)(messageHandle);
+        @(field_name) = native_read_field_@(member.name)(messageHandle);
 @[          end if]@
 @[      else]@
-        @(get_field_name(type_name, member.name)).__ReadFromHandle(native_get_field_@(member.name)_HANDLE(messageHandle));
+        @(field_name).__ReadFromHandle(native_get_field_@(member.name)_HANDLE(messageHandle));
 @[      end if]@
 @[  end for]@
 @[end if]@
     }
 
     [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
-    public void __WriteToHandle(global::System.IntPtr messageHandle) {
+    public void __WriteToHandle(global::System.IntPtr messageHandle)
+    {
 @[if not is_empty_message(message.structure.members)]@
 @[  for member in message.structure.members]@
 @[      if is_unsupported_type(member.type)]@
@@ -437,18 +466,18 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
                 throw new Exception("The method 'native_init_seqence_field_@(member.name)_message()' failed.");
             }
 @[          end if]@
-@[          if sequence_block_copy_supported(member.type.value_type)]@
+@[          if is_sequence_block_copy_supported(member.type.value_type)]@
 @{              field_name = get_field_name(type_name, member.name)}@
 @[              if isinstance(member.type, AbstractSequence)]@
-            Type listType = @(field_name).GetType();
-            FieldInfo itemsField = GetRuntimeField(listType, "_items");
+            Type list_type__local_variable = @(field_name).GetType();
+            FieldInfo items_field__local_variable = GetRuntimeField(list_type__local_variable, "_items");
 
-            if (!(itemsField.GetValue(@(field_name)) is @(get_dotnet_type(member.type.value_type))[] itemsArray))
-                throw new Exception($"Unable to access contents of {listType.Name}._items!");
+            if (!(items_field__local_variable.GetValue(@(field_name)) is @(get_dotnet_type(member.type.value_type))[] items_array__local_variable))
+                throw new Exception($"Unable to access contents of {list_type__local_variable.Name}._items!");
             
-            native_write_field_@(member.name)(messageHandle, itemsArray, itemsArray.Length);
+            native_write_field_@(member.name)(messageHandle, items_array__local_variable, count__local_variable);
 @[              else]@
-            native_write_field_@(member.name)(messageHandle, @(field_name), @(field_name).Length);
+            native_write_field_@(member.name)(messageHandle, @(field_name), count__local_variable);
 @[              end if]@
 @[          else]@
             for (var i__local_variable = 0; i__local_variable < count__local_variable; i__local_variable++)

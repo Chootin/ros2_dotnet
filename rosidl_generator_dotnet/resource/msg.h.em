@@ -9,7 +9,7 @@ from rosidl_parser.definition import BasicType
 from rosidl_parser.definition import NamespacedType
 from rosidl_parser.definition import BOOLEAN_TYPE
 from rosidl_generator_dotnet import msg_type_to_c
-from rosidl_generator_dotnet import sequence_block_copy_supported
+from rosidl_generator_dotnet import is_sequence_block_copy_supported
 
 type_name = message.structure.namespaced_type.name
 msg_typename = '%s__%s' % ('__'.join(message.structure.namespaced_type.namespaces), type_name)
@@ -71,9 +71,11 @@ void @(msg_typename)__write_field_@(member.name)(void *, int32_t /* bool */);
 @(msg_prefix)_EXPORT
 int32_t /* bool */ @(msg_prefix)_CDECL @(msg_typename)__read_field_@(member.name)(void *);
 @[        elif isinstance(member.type.value_type, BasicType) or isinstance(member.type.value_type, AbstractString)]@
-@[          if sequence_block_copy_supported(member.type.value_type)]@
+@[          if is_sequence_block_copy_supported(member.type.value_type)]@
 @(msg_prefix)_EXPORT
-void @(msg_typename)__write_field_@(member.name)(void *, const @(msg_type_to_c(member.type.value_type)) *, int32_t size);
+void @(msg_typename)__write_field_@(member.name)(void *, const @(msg_type_to_c(member.type.value_type)) *, int32_t);
+@(msg_prefix)_EXPORT
+void @(msg_prefix)_CDECL @(msg_typename)__read_field_@(member.name)(void *, @(msg_type_to_c(member.type.value_type)) *, int32_t);
 @[          else]@
 @(msg_prefix)_EXPORT
 void @(msg_typename)__write_field_@(member.name)(void *, @(msg_type_to_c(member.type.value_type)));
