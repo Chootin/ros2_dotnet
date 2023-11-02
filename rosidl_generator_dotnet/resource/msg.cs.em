@@ -35,6 +35,14 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
     private static readonly DllLoadUtils dllLoadUtils;
 
 @[for member in message.structure.members]@
+@[  if isinstance(member.type, AbstractSequence)]@
+@{    field_name = get_field_name(type_name, member.name)}@
+    private static readonly FieldInfo @(field_name)_field_items;
+    private static readonly FieldInfo @(field_name)_field_size;
+@[  end if]@
+@[end for]@
+
+@[for member in message.structure.members]@
 @[    if isinstance(member.type, Array)]@
     public const int @(get_field_name(type_name, member.name))Length = @(member.type.size);
 @[    elif isinstance(member.type, AbstractSequence) and member.type.has_maximum_size()]@
@@ -250,6 +258,15 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
             native_get_field_@(member.name)_HANDLE_ptr, typeof(NativeGetField@(get_field_name(type_name, member.name))Type));
 @[    end if]@
 @[end for]@
+
+@[for member in message.structure.members]@
+@[  if isinstance(member.type, AbstractSequence)]@
+@{    field_name = get_field_name(type_name, member.name)}@
+        Type @(field_name)_list_type = typeof(List<@(get_dotnet_type(member.type.value_type))>);
+        @(field_name)_field_items = GetRuntimeField(@(field_name)_list_type, "_items");
+        @(field_name)_field_size = GetRuntimeField(@(field_name)_list_type, "_size");
+@[  end if]@
+@[end for]@
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -385,9 +402,9 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
 @[              else]@
                 @(field_name)[i__local_variable] = new @(get_dotnet_type(member.type.value_type))();
                 @(field_name)[i__local_variable].__ReadFromHandle(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
-@[              end if]
+@[              end if]@
             }
-@[          end if]
+@[          end if]@
         }
 @[      elif isinstance(member.type, AbstractSequence)]@
         {
@@ -399,16 +416,9 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
 
 @[          if is_sequence_block_copy_supported(member.type.value_type)]@
             if (@(field_name).Capacity < size__local_variable) @(field_name).Capacity = size__local_variable;
-
-            Type list_type__local_variable = @(field_name).GetType();
-            FieldInfo items_field__local_variable = GetRuntimeField(list_type__local_variable, "_items");
-            FieldInfo size_field__local_variable = GetRuntimeField(list_type__local_variable, "_size");
-
-            if (!(items_field__local_variable.GetValue(@(field_name)) is @(get_dotnet_type(member.type.value_type))[] items_array__local_variable))
-                throw new Exception($"Unable to access contents of {list_type__local_variable.Name}._items!");
             
-            native_read_field_@(member.name)(messageHandle, items_array__local_variable, size__local_variable);
-            size_field__local_variable.SetValue(@(field_name), size__local_variable);
+            native_read_field_@(member.name)(messageHandle, (@(get_dotnet_type(member.type.value_type))[])@(field_name)_field_items.GetValue(@(field_name)), size__local_variable);
+            @(field_name)_field_size.SetValue(@(field_name), size__local_variable);
 @[          else]@
             @(field_name).Clear();
             for (int i__local_variable = 0; i__local_variable < size__local_variable; i__local_variable++)
@@ -421,9 +431,9 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
 @[              else]@
                 @(field_name).Add(new @(get_dotnet_type(member.type.value_type))());
                 @(field_name)[i__local_variable].__ReadFromHandle(native_get_field_@(member.name)_message(messageHandle, i__local_variable));
-@[              end if]
+@[              end if]@
             }
-@[          end if]
+@[          end if]@
         }
 @[      elif isinstance(member.type, BasicType) or isinstance(member.type, AbstractString)]@
 @[          if isinstance(member.type, AbstractString)]@
@@ -468,14 +478,8 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
 @[          end if]@
 @[          if is_sequence_block_copy_supported(member.type.value_type)]@
 @{              field_name = get_field_name(type_name, member.name)}@
-@[              if isinstance(member.type, AbstractSequence)]@
-            Type list_type__local_variable = @(field_name).GetType();
-            FieldInfo items_field__local_variable = GetRuntimeField(list_type__local_variable, "_items");
-
-            if (!(items_field__local_variable.GetValue(@(field_name)) is @(get_dotnet_type(member.type.value_type))[] items_array__local_variable))
-                throw new Exception($"Unable to access contents of {list_type__local_variable.Name}._items!");
-            
-            native_write_field_@(member.name)(messageHandle, items_array__local_variable, count__local_variable);
+@[              if isinstance(member.type, AbstractSequence)]@            
+            native_write_field_@(member.name)(messageHandle, (@(get_dotnet_type(member.type.value_type))[])@(field_name)_field_items.GetValue(@(field_name)), count__local_variable);
 @[              else]@
             native_write_field_@(member.name)(messageHandle, @(field_name), count__local_variable);
 @[              end if]@
