@@ -39,6 +39,7 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
 @{    field_name = get_field_name(type_name, member.name)}@
     private static readonly FieldInfo @(field_name)_field_items;
     private static readonly FieldInfo @(field_name)_field_size;
+    private static readonly FieldInfo @(field_name)_field_version;
 @[  end if]@
 @[end for]@
 
@@ -265,6 +266,7 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
         Type @(field_name)_list_type = typeof(List<@(get_dotnet_type(member.type.value_type))>);
         @(field_name)_field_items = GetRuntimeField(@(field_name)_list_type, "_items");
         @(field_name)_field_size = GetRuntimeField(@(field_name)_list_type, "_size");
+        @(field_name)_field_version = GetRuntimeField(@(field_name)_list_type, "_version");
 @[  end if]@
 @[end for]@
     }
@@ -419,6 +421,7 @@ public class @(type_name) : global::ROS2.IRosMessage@(additional_interfaces_str)
             
             native_read_field_@(member.name)(messageHandle, (@(get_dotnet_type(member.type.value_type))[])@(field_name)_field_items.GetValue(@(field_name)), size__local_variable);
             @(field_name)_field_size.SetValue(@(field_name), size__local_variable);
+            @(field_name)_field_version.SetValue(@(field_name), (int)@(field_name)_field_version.GetValue(@(field_name)) + 1);
 @[          else]@
             @(field_name).Clear();
             for (int i__local_variable = 0; i__local_variable < size__local_variable; i__local_variable++)
